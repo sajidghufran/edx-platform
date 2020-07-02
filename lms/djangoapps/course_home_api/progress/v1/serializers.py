@@ -85,6 +85,7 @@ class ProgressTabSerializer(serializers.Serializer):
     Serializer for progress tab
     """
     certificate_data = CertificateDataSerializer()
+    credit_course_requirements = CreditCourseRequirementsSerializer()
     courseware_summary = ChapterSerializer(many=True)
     enrollment_mode = serializers.CharField()
     studio_url = serializers.CharField()

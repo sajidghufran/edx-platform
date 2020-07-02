@@ -112,7 +112,11 @@ class ProgressTabView(RetrieveAPIView):
         data = {
             'certificate_data': get_cert_data(request.user, course, enrollment_mode, course_grade),
             'courseware_summary': courseware_summary,
+            'credit_course_requirements': credit_course_requirements(course_key, request.user),
             'enrollment_mode': enrollment_mode,
+            'studio_url': get_studio_url(course, 'settings/grading'),
+            'user_timezone': user_timezone,
+            'certificate_data': get_cert_data(request.user, course, enrollment_mode, course_grade),
             'studio_url': get_studio_url(course, 'settings/grading'),
             'user_timezone': user_timezone,
         }
