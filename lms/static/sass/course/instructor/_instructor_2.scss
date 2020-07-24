@@ -3076,3 +3076,12 @@ div.staff_actions {
 .font-size-100 {
     font-size: 100%
 }
+
+.problem-selector{
+    height: 34px;
+    min-width: 300px;
+    max-width: 780px;
+    border: 1px solid grey;
+    display: block;
+    padding: 8px;
+}

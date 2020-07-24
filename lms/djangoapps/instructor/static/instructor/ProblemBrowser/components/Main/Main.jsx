@@ -1,5 +1,5 @@
 /* global gettext */
-import { Button } from '@edx/paragon';
+import { Button, Icon } from '@edx/paragon';
 import { BlockBrowser } from 'BlockBrowser';
 import * as PropTypes from 'prop-types';
 import * as React from 'react';
@@ -27,8 +27,20 @@ export default class Main extends React.Component {
 
     return (
       <div className="problem-browser">
-        <Button onClick={this.handleToggleDropdown} label={gettext('Select a section or problem')} />
-        <input type="text" name="problem-location" value={selectedBlock} disabled />
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+        <span
+          onClick={this.handleToggleDropdown}
+          className={['problem-selector']}
+        >
+          <span>{selectedBlock || 'Select a section or problem'}</span>
+          <span style={{ float: 'right' }}>
+            <Icon
+              className={['fa', 'fa-sort']}
+            />
+          </span>
+        </span>
+
+        <input type="text" name="problem-location" value={selectedBlock} disabled style={{ display: 'none' }} />
         {this.state.showDropdown &&
         <BlockBrowser onSelectBlock={(blockId) => {
           this.hideDropdown();
