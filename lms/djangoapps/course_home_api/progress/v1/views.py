@@ -5,6 +5,7 @@ Progress Tab Views
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
 from edx_django_utils import monitoring as monitoring_utils
 from opaque_keys.edx.keys import CourseKey
@@ -15,6 +16,7 @@ from student.models import CourseEnrollment
 from lms.djangoapps.course_api.blocks.transformers.blocks_api import BlocksAPITransformer
 from lms.djangoapps.courseware.context_processor import user_timezone_locale_prefs
 from lms.djangoapps.courseware.courses import get_course_with_access, get_studio_url
+from lms.djangoapps.courseware.date_summary import VerificationDeadlineDate
 from lms.djangoapps.courseware.masquerade import setup_masquerade
 from lms.djangoapps.courseware.access import has_access
 from xmodule.modulestore.django import modulestore
@@ -119,6 +121,7 @@ class ProgressTabView(RetrieveAPIView):
             'certificate_data': get_cert_data(request.user, course, enrollment_mode, course_grade),
             'studio_url': get_studio_url(course, 'settings/grading'),
             'user_timezone': user_timezone,
+            'verification_status': VerificationDeadlineDate(course, request.user).verification_status
         }
         context = self.get_serializer_context()
         context['staff_access'] = bool(has_access(request.user, 'staff', course))

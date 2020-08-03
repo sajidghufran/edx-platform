@@ -66,9 +66,9 @@ class CertificateDataSerializer(serializers.Serializer):
         return cert_data.cert_status == CertificateStatuses.requesting and cert_data.request_cert_url is not None
 
 
-class CreditCourseRequirementsSerializer(serializers.Serializer):
+class RequirementSerializer(serializers.Serializer):
     """
-    Serializer for credit_course_requirements
+    Serializer for requirement objects
     """
     display_name = serializers.CharField()
     namespace = serializers.CharField()
@@ -78,6 +78,14 @@ class CreditCourseRequirementsSerializer(serializers.Serializer):
 
     def get_min_grade(self, req):
         return req['criteria']['min_grade'] * 100
+
+
+class CreditCourseRequirementsSerializer(serializers.Serializer):
+    """
+    Serializer for credit_course_requirements
+    """
+    eligibility_status = serializers.CharField()
+    requirements = RequirementSerializer(many=True)
 
 
 class ProgressTabSerializer(serializers.Serializer):
@@ -90,3 +98,4 @@ class ProgressTabSerializer(serializers.Serializer):
     enrollment_mode = serializers.CharField()
     studio_url = serializers.CharField()
     user_timezone = serializers.CharField()
+    verification_status = serializers.CharField()
