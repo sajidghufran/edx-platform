@@ -24,6 +24,7 @@ from xmodule.modulestore.django import modulestore
 import lms.djangoapps.course_blocks.api as course_blocks_api
 from lms.djangoapps.courseware.views.views import credit_course_requirements, get_cert_data
 from lms.djangoapps.grades.api import CourseGradeFactory
+from lms.djangoapps.verify_student.services import IDVerificationService
 from openedx.core.djangoapps.content.block_structure.transformers import BlockStructureTransformers
 
 
@@ -48,6 +49,8 @@ class ProgressTabView(RetrieveAPIView):
             is_requestable: (bool) true if status is requesting and request_cert_url is not None
             msg: (str) message for the certificate status
             title: (str) title of the certificate status
+        credit_course_requirements:
+        credit_purchase_url: (str) the url to the support docs for purchasing a credit
         courseware_summary: List of serialized Chapters. each Chapter has the following fields:
             display_name: (str) a str of what the name of the Chapter is for displaying on the site
             subsections: List of serialized Subsections, each has the following fields:
@@ -65,6 +68,7 @@ class ProgressTabView(RetrieveAPIView):
         enrollment_mode: (str) a str representing the enrollment the user has ('audit', 'verified', ...)
         studio_url: (str) a str of the link to the grading in studio for the course
         user_timezone: (str) The user's preferred timezone
+        verification_data:
 
 
 
@@ -78,6 +82,7 @@ class ProgressTabView(RetrieveAPIView):
 
     permission_classes = (IsAuthenticated,)
     serializer_class = ProgressTabSerializer
+    CREDIT_SUPPORT_URL = 'https://support.edx.org/hc/en-us/sections/115004154688-Purchasing-Academic-Credit'
 
     def get(self, request, *args, **kwargs):
         course_key_string = kwargs.get('course_key_string')
@@ -111,17 +116,27 @@ class ProgressTabView(RetrieveAPIView):
         course_grade = CourseGradeFactory().read(request.user, course)
         courseware_summary = course_grade.chapter_grades.values()
 
+        verif_status = IDVerificationService.user_status(request.user)
+        verif_link = None
+        if verif_status['status'] is None:
+            verif_link = IDVerificationService.get_verify_location('verify_student_verify_now', course_id=course_key)
+        elif verif_status['status'] == 'must_reverify' or verif_status['status'] == 'expired':
+            verif_link = IDVerificationService.get_verify_location('verify_student_reverify', course_id=course_key)
+        verification_data = {
+            'expiration': verif_status['verification_expiry'],
+            'link': verif_link,
+            'status': verif_status['status'],
+            'status_date': verif_status['status_date'],
+        }
         data = {
             'certificate_data': get_cert_data(request.user, course, enrollment_mode, course_grade),
             'courseware_summary': courseware_summary,
             'credit_course_requirements': credit_course_requirements(course_key, request.user),
+            'credit_purchase_url': self.CREDIT_SUPPORT_URL,
             'enrollment_mode': enrollment_mode,
             'studio_url': get_studio_url(course, 'settings/grading'),
             'user_timezone': user_timezone,
-            'certificate_data': get_cert_data(request.user, course, enrollment_mode, course_grade),
-            'studio_url': get_studio_url(course, 'settings/grading'),
-            'user_timezone': user_timezone,
-            'verification_status': VerificationDeadlineDate(course, request.user).verification_status
+            'verification_data': verification_data,
         }
         context = self.get_serializer_context()
         context['staff_access'] = bool(has_access(request.user, 'staff', course))
